@@ -1,0 +1,78 @@
+.search-form {
+	width: 325px;
+	margin: auto;
+	padding: 30px 15px;
+}
+.search-form input {
+	margin-right: 20px;
+	width: 170px;
+	font-size: 20px;
+	padding: 10px;
+	border-radius: 10px;
+}
+.search-form button {
+	color: white;
+	font-weight: 700;
+	background-color: darkred;
+	font-size: 20;
+	padding: 10px 20px;
+	border-radius: 10px;
+}
+.search-form button:hover,
+.search-form button:focus {
+	background-color: firebrick;
+}
+.container {
+	background: gold;
+	width: 100%;
+}
+.gallery {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 24px;
+	max-width: 1158px;
+	margin: 0 auto;
+	padding: 15px;
+}
+.photo-card {
+	width: calc((100% - 72px) / 4);
+}
+.info {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 32px 16px;
+	border: 1px solid #e7e9fc;
+	border-top: none;
+}
+.is-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	border: 0;
+	padding: 0;
+	white-space: nowrap;
+	clip-path: inset(100%);
+	clip: rect(0 0 0 0);
+	overflow: hidden;
+}
+.load-more {
+	display: block;
+	font-weight: 700;
+	color: white;
+	background-color: darkcyan;
+	font-size: 20;
+	padding: 10px 20px;
+	border-radius: 10px;
+	margin: auto;
+	width: 135px;
+}
+.load-more:hover,
+.load-more:focus {
+	background-color: lightseagreen;
+}
+.wrap {
+	width: 100%;
+	padding: 15px 0;
+}
