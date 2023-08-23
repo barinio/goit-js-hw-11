@@ -76,7 +76,9 @@ async function loadMoreData() {
     const totalHits = nextResponseData.data.totalHits;
     updateUI(arrNextData);
     if (Math.ceil(totalHits / 40) <= currentPage) {
-      Notify.success(`The End!`);
+      Notify.failure(
+        `We're sorry, but you've reached the end of search results.`
+      );
       observer.unobserve(refs.target);
     }
   } catch {
@@ -128,6 +130,3 @@ function markup(arr) {
     )
     .join('');
 }
-// if (Math.ceil(responseData.data.totalHits / 40) === currentPage) {
-//   console.log('yes');
-// }
