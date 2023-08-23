@@ -51,6 +51,7 @@ async function searchImgs(e) {
     updateUI(arrData.hits);
     const totalHits = arrData.totalHits;
     if (Math.ceil(totalHits / 40) <= currentPage) {
+      observer.observe(refs.div.lastChild);
       observer.unobserve(refs.target);
     }
   } catch {
@@ -75,6 +76,7 @@ async function loadMoreData() {
     const totalHits = nextResponseData.data.totalHits;
     updateUI(arrNextData);
     if (Math.ceil(totalHits / 40) <= currentPage) {
+      Notify.success(`The End!`);
       observer.unobserve(refs.target);
     }
   } catch {
@@ -87,6 +89,7 @@ async function loadMoreData() {
 function updateUI(data) {
   refs.div.insertAdjacentHTML('beforeend', markup(data));
   observer.observe(refs.target);
+  observer.unobserve(refs.div.lastChild);
 
   gallery.refresh();
 }
