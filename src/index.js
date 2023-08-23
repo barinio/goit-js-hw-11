@@ -1,114 +1,97 @@
-import axios from 'axios';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
-
-const BASE_URL = 'https://pixabay.com/api';
-const API_KEY = '38967351-7f81fcf5656e7dea2c65ce073';
+import { fetchResponse } from './pixabay-api';
 
 const refs = {
   form: document.querySelector('.search-form'),
-  input: document.querySelector('[type="text"]'),
   div: document.querySelector('.gallery'),
   btnMore: document.querySelector('.load-more'),
+  target: document.querySelector('.js-guard'),
 };
 
-const params = new URLSearchParams({
-  image_type: 'photo;',
-  orientation: 'horizontal',
-  safesearch: true,
-  per_page: 40,
+let currentPage = 1;
+let responseData = null;
+
+const gallery = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt',
+  captionDelay: 250,
 });
 
-let currentPage = 1;
+let options = {
+  root: null,
+  rootMargin: '300px',
+  threshold: 1.0,
+};
+let observer = new IntersectionObserver(onLoad, options);
 
 refs.form.addEventListener('submit', searchImgs);
-refs.btnMore.addEventListener('click', onLoad);
-
-refs.btnMore.classList.add('is-hidden');
-
-async function fetchResp(page = 1) {
-  let userVal = refs.input.value;
-
-  if (userVal !== '') {
-    const response = await axios.get(
-      `${BASE_URL}/?key=${API_KEY}&q=${userVal}&${params}&page=${page}`
-    );
-
-    return response;
-  }
-}
 
 async function searchImgs(e) {
   e.preventDefault();
+  observer.unobserve(refs.target);
   refs.div.innerHTML = '';
+  currentPage = 1;
 
   try {
-    const responseData = await fetchResp();
-    const arrData = responseData.data.hits;
+    responseData = await fetchResponse(currentPage);
+    const arrData = responseData.data;
 
-    if (arrData.length === 0) {
+    if (arrData.hits.length === 0) {
       Notify.failure(
-        'Sorry, there are no images matching your search query. Please try again.',
-        {
-          timeout: 5000,
-        }
+        'Sorry, there are no images matching your search query. Please try again.'
       );
-      refs.btnMore.classList.add('is-hidden');
       return;
     }
 
-    if (responseData.data.totalHits !== 0) {
-      Notify.success(`Hooray! We found ${responseData.data.totalHits} images.`);
+    if (arrData.totalHits !== 0) {
+      Notify.success(`Hooray! We found ${arrData.totalHits} images.`);
     }
 
-    updateUI(arrData);
+    updateUI(arrData.hits);
+    const totalHits = arrData.totalHits;
+    if (Math.ceil(totalHits / 40) <= currentPage) {
+      observer.unobserve(refs.target);
+    }
   } catch {
-    refs.btnMore.classList.add('is-hidden');
     Notify.failure("It's an empty string!");
   }
 }
 
-async function onLoad() {
-  currentPage += 1;
+async function onLoad(entries) {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      currentPage += 1;
 
-  try {
-    const responseData = await fetchResp(currentPage);
-    const arrData = responseData.data.hits;
-
-    if (arrData.length === 0) {
-      Notify.success('The End');
-
-      refs.btnMore.classList.add('is-hidden');
-      return;
+      loadMoreData();
     }
+  });
+}
 
-    updateUI(responseData.data.hits);
-
-    const { height: cardHeight } = document
-      .querySelector('.gallery')
-      .firstElementChild.getBoundingClientRect();
-
-    window.scrollBy({
-      top: cardHeight * 1.9,
-      behavior: 'smooth',
-    });
+async function loadMoreData() {
+  try {
+    const nextResponseData = await fetchResponse(currentPage);
+    const arrNextData = nextResponseData.data.hits;
+    const totalHits = nextResponseData.data.totalHits;
+    updateUI(arrNextData);
+    if (Math.ceil(totalHits / 40) <= currentPage) {
+      observer.unobserve(refs.target);
+    }
   } catch {
     Notify.failure(
       "We're sorry, but you've reached the end of search results."
     );
-    refs.btnMore.classList.add('is-hidden');
   }
 }
 
-function updateUI(newData) {
-  refs.div.insertAdjacentHTML('beforeend', markup(newData));
+function updateUI(data) {
+  refs.div.insertAdjacentHTML('beforeend', markup(data));
+  observer.observe(refs.target);
 
-  createSimpleLightbox();
+  gallery.refresh();
 }
 
 function markup(arr) {
-  refs.btnMore.classList.remove('is-hidden');
   return arr
     .map(
       ({
@@ -142,11 +125,6 @@ function markup(arr) {
     )
     .join('');
 }
-
-function createSimpleLightbox() {
-  const gallery = new SimpleLightbox('.gallery a', {
-    captionsData: 'alt',
-    captionDelay: 250,
-  });
-  gallery.refresh();
-}
+// if (Math.ceil(responseData.data.totalHits / 40) === currentPage) {
+//   console.log('yes');
+// }
